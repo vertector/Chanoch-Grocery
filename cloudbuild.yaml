@@ -27,10 +27,9 @@ steps:
   - 'northamerica-northeast2' # Your Cloud Run service region
   # Optional: If you need to allow unauthenticated access (like your current setup)
   - '--allow-unauthenticated'
-  # Automate secret deployment using a Cloud Build substitution variable
-  # This keeps the secret name out of your code. You define _SECRET_NAME in your Cloud Build Trigger.
+  # Corrected: Use the substitution directly in the argument string
   - '--set-secrets'
-  - 'GEMINI_API_KEY=$_SECRET_NAME:latest'
+  - 'GEMINI_API_KEY=${_SECRET_NAME}:latest' # This line was changed
 
 # Substitution variables allow you to parameterize your build
 substitutions:
