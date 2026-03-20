@@ -1,33 +1,27 @@
 steps:
-# Step 1: Build the container image
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'northamerica-northeast2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/chanoch-grocery:$COMMIT_SHA', '.']
-
-# Step 2: Push the container image to Artifact Registry
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'northamerica-northeast2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/chanoch-grocery:$COMMIT_SHA']
-
-# Step 3: Deploy the container image to Cloud Run
+# Step 1: Use Buildpacks to build the container image
+# This step automatically detects your Node.js/Vite application
+# and builds a production-ready Docker image.
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: gcloud
+  entrypoint: 'bash'
   args:
-  - 'run'
-  - 'deploy'
-  - 'chanoch-grocery' # Your Cloud Run service name
-  - '--image'
-  - 'northamerica-northeast2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/chanoch-grocery:$COMMIT_SHA'
-  - '--region'
-  - 'northamerica-northeast2' # Your Cloud Run service region
-  - '--allow-unauthenticated'
-  - '--set-secrets'
-  - 'GEMINI_API_KEY=${_SECRET_NAME}:latest'
+  - '-c'
+  - |
+    gcloud run deploy chanoch-grocery \
+    --source=. \
+    --image=northamerica-northeast2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/chanoch-grocery:$COMMIT_SHA \
+    --region=northamerica-northeast2 \
+    --allow-unauthenticated \
+    --set-secrets=GEMINI_API_KEY=${_SECRET_NAME}:latest \
+    --project=$PROJECT_ID
+
+# Note: When using --source=., gcloud run deploy handles both the build (with Buildpacks) and the deployment.
+# Therefore, you often combine the build and deploy into a single gcloud run deploy --source=. command.
+# The 'images' section typically isn't needed here as the image isn't built in a separate step.
 
 # Add this 'options' block to specify logging behavior
 options:
-  logging: CLOUD_LOGGING_ONLY # This tells Cloud Build to use Cloud Logging for logs
+  logging: CLOUD_LOGGING_ONLY
 
 substitutions:
   _SECRET_NAME: 'chanoch-grocery-api'
-
-images:
-- 'northamerica-northeast2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/chanoch-grocery:$COMMIT_SHA'
