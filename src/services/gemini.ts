@@ -35,7 +35,8 @@ const MODEL = {
 
 // ─── Client factory ───────────────────────────────────────────────────────────
 function getAIClient(): GoogleGenAI {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const env = (window as any).__ENV__ || {};
+  const apiKey = env.GEMINI_API_KEY || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : undefined) || env.API_KEY || (typeof process !== 'undefined' && process.env ? process.env.API_KEY : undefined);
 
   if (!apiKey) throw new Error("No Gemini API key found in environment.");
   return new GoogleGenAI({ apiKey });
